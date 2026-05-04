@@ -1,59 +1,34 @@
-from security.validation import validate_username, validate_email, sanitize_input
 from auth.login import login
-from security.sql_queries import get_user_by_username
+from security.authz import authorize
+from security.validation import sanitize_output
 
 
-def test_validation():
-    print("\n=== VALIDATION TESTS ===")
+def run_app():
+    print("SAFEVAULT - APP RUN")
 
-    usernames = ["admin", "user_123", "<script>hack</script>"]
-    emails = ["test@email.com", "bademail@", "user@domain.com"]
+    user = login("admin", "Admin123")
 
-    for u in usernames:
-        print(f"Username: {u} -> {validate_username(u)}")
+    if user:
+        print("Login exitoso")
 
-    for e in emails:
-        print(f"Email: {e} -> {validate_email(e)}")
-
-
-def test_login():
-    print("\n=== LOGIN TESTS ===")
-
-    print(login("admin", "1234"))   # admin
-    print(login("user", "user"))    # user
-    print(login("hack", "123"))     # None
+        if authorize(user, "admin"):
+            print("Acceso admin permitido")
+        else:
+            print("Acceso denegado")
+    else:
+        print("Credenciales incorrectas")
 
 
-def test_sanitization():
-    print("\n=== SANITIZATION TESTS ===")
+def demo_xss_protection():
+    print("\n=== XSS DEMO ===")
 
-    inputs = [
-        "<script>alert('x')</script>",
-        "' OR 1=1 --",
-        "normal_input"
-    ]
+    malicious = "<script>alert('hack')</script>"
+    safe = sanitize_output(malicious)
 
-    for i in inputs:
-        print(f"{i} -> {sanitize_input(i)}")
-
-
-def test_database():
-    print("\n=== DATABASE TEST ===")
-
-    try:
-        result = get_user_by_username("admin")
-        print("DB Result:", result)
-    except Exception as e:
-        print("Database error (expected if DB not configured):", e)
-
-
-def run_all_tests():
-    test_validation()
-    test_login()
-    test_sanitization()
-    test_database()
+    print("Original:", malicious)
+    print("Seguro:", safe)
 
 
 if __name__ == "__main__":
-    print("SAFEVAULT - INTEGRATED TEST RUNNER")
-    run_all_tests()
+    run_app()
+    demo_xss_protection()

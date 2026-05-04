@@ -1,20 +1,21 @@
 import hashlib
+from database.init_db import get_user_by_username
 
-users_db = {
-    "admin": {
-        "password": hashlib.sha256("1234".encode()).hexdigest(),
-        "role": "admin"
-    },
-    "user": {
-        "password": hashlib.sha256("user".encode()).hexdigest(),
-        "role": "user"
-    }
-}
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def login(username, password):
-    hashed = hashlib.sha256(password.encode()).hexdigest()
+    user = get_user_by_username(username)
 
-    if username in users_db:
-        if users_db[username]["password"] == hashed:
-            return users_db[username]["role"]
+    if not user:
+        return None
+
+    db_user, db_pass, role = user
+
+    if hash_password(password) == db_pass:
+        return {
+            "username": db_user,
+            "role": role
+        }
+
     return None

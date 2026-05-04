@@ -1,19 +1,17 @@
 import sqlite3
 
-conn = sqlite3.connect("safevault.db")
-cursor = conn.cursor()
+def get_connection():
+    return sqlite3.connect("safevault.db")
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS Users (
-    UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-    Username TEXT,
-    Email TEXT
-)
-""")
+def get_user_by_username(username):
+    conn = get_connection()
+    cursor = conn.cursor()
 
-cursor.execute("INSERT INTO Users (Username, Email) VALUES ('admin', 'admin@test.com')")
+    cursor.execute(
+        "SELECT username, password, role FROM users WHERE username = ?",
+        (username,)
+    )
 
-conn.commit()
-conn.close()
-
-print("DB creada correctamente")
+    user = cursor.fetchone()
+    conn.close()
+    return user
